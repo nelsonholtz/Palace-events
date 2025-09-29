@@ -1,0 +1,24 @@
+/* src/components/header/Header.css */
+.header {
+  padding: 1rem;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header nav a,
+.header nav button {
+  margin-right: 1rem;
+  text-decoration: none;
+  color: #333;
+}
+
+.header nav button {
+  cursor: pointer;
+  background: #ff5555;
+  color: white;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+}
