@@ -1,32 +1,22 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./contexts/authContext"; // make sure path is correct
+import { Routes, Route } from "react-router-dom";
+import { useAuth } from "./contexts/authContext";
 import Login from "./components/auth/login";
 import Register from "./components/auth/register";
 import Header from "./components/header/header";
 import Home from "./components/home/home";
 import "./App.css";
 
-const PrivateRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
-
-  if (loading) return <p>Loading...</p>; // optional loader
-
-  return currentUser ? children : <Navigate to="/login" />;
-};
-
 function App() {
+  const { currentUser } = useAuth();
+
   return (
     <>
       <Header />
       <Routes>
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          }
-        />
+        {/* Home page is public now */}
+        <Route path="/" element={<Home />} />
+
+        {/* Auth pages */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>

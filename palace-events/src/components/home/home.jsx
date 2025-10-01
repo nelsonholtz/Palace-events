@@ -1,33 +1,30 @@
-import React from "react";
 import { useAuth } from "../../contexts/authContext";
+import Calendar from "../../pages/Calendar"; // your Big Calendar component
+import { Link } from "react-router-dom";
 
-const Home = () => {
+export default function Home() {
   const { currentUser } = useAuth();
 
-  if (!currentUser) {
-    return (
-      <div className="text-2xl font-bold pt-14">
-        Welcome, Guest! Please log in or register to continue.
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col items-center pt-14">
-      {currentUser.photoURL && (
-        <img
-          src={currentUser.photoURL}
-          alt="Profile"
-          className="w-24 h-24 rounded-full mb-4"
-        />
+    <div className="p-6">
+      <Calendar />
+
+      {currentUser ? (
+        <div className="mt-4">
+          <button className="px-4 py-2 bg-blue-500 text-white rounded">
+            + Add Event
+          </button>
+        </div>
+      ) : (
+        <div className="mt-4 text-gray-600">
+          <p>
+            <Link to="/login" className="text-blue-600 underline">
+              Sign in
+            </Link>{" "}
+            to create your own events.
+          </p>
+        </div>
       )}
-      <h1 className="text-2xl font-bold">
-        Hello{" "}
-        {currentUser.displayName ? currentUser.displayName : currentUser.email},
-        you are now logged in.
-      </h1>
     </div>
   );
-};
-
-export default Home;
+}
