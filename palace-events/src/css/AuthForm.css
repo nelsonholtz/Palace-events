@@ -1,45 +1,81 @@
-.auth-container {
+.auth-form {
   max-width: 400px;
   margin: 50px auto;
   padding: 30px;
   border: 1px solid #ccc;
   border-radius: 8px;
   background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* spacing between all elements */
 }
 
-.auth-container h2 {
+.auth-form h2 {
   text-align: center;
   margin-bottom: 20px;
 }
 
-.auth-container input {
+.auth-form input {
   width: 100%;
   padding: 10px;
-  margin-bottom: 15px;
   border-radius: 4px;
   border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
 }
 
-.auth-container button {
-  width: 100%;
+/* Password field wrapper */
+.auth-form .input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.auth-form .input-group input {
+  flex: 1;
+  border: none;
   padding: 10px;
+  font-size: 14px;
+}
+
+.auth-form .input-group input:focus {
+  outline: none;
+}
+
+.auth-form .toggle-btn {
+  padding: 0 12px;
+  background: transparent;
+  border: none;
+  color: #0077ff;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.auth-form button {
+  width: 100%;
+  padding: 12px;
   background: #0077ff;
   color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 15px;
+  transition: background 0.2s ease-in-out;
 }
 
-.auth-container button:hover {
+.auth-form button:hover {
   background: #005bb5;
 }
 
-.google-btn {
+.auth-form .google-btn {
   background: #db4437;
   margin-top: 10px;
 }
 
-.google-btn:hover {
+.auth-form .google-btn:hover {
   background: #c1351d;
 }
 

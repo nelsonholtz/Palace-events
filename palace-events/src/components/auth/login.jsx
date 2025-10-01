@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext";
 import { loginUser, loginWithGoogle } from "../../firebase/auth";
+import "../../css/AuthForm.css";
 
 const Login = () => {
-  const { setCurrentUser } = useAuth(); // ✅ correct function from context
+  const { setCurrentUser } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -14,8 +15,8 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const userCredential = await loginUser(email, password); // Firebase returns userCredential
-      setCurrentUser(userCredential.user); // ✅ set the actual user
+      const userCredential = await loginUser(email, password);
+      setCurrentUser(userCredential.user);
       navigate("/");
     } catch (error) {
       console.error("Login error:", error);
@@ -25,7 +26,7 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       const userCredential = await loginWithGoogle();
-      setCurrentUser(userCredential.user); // update context
+      setCurrentUser(userCredential.user);
       navigate("/");
     } catch (error) {
       console.error("Google login error:", error);
@@ -52,20 +53,15 @@ const Login = () => {
         />
         <button
           type="button"
+          className="toggle-btn"
           onClick={() => setShowPassword((prev) => !prev)}
-          style={{
-            position: "absolute",
-            right: "10px",
-            top: "50%",
-            transform: "translateY(-50%)",
-          }}
         >
           {showPassword ? "Hide" : "Show"}
         </button>
       </div>
 
       <button type="submit">Login</button>
-      <button type="button" onClick={handleGoogleLogin}>
+      <button type="button" className="google-btn" onClick={handleGoogleLogin}>
         Login with Google
       </button>
     </form>

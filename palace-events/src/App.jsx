@@ -6,7 +6,6 @@ import Header from "./components/header/header";
 import Home from "./components/home/home";
 import "./App.css";
 
-// PrivateRoute wrapper for authenticated pages
 const PrivateRoute = ({ children }) => {
   const { currentUser, loading } = useAuth();
 
