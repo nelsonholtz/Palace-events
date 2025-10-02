@@ -1,19 +1,39 @@
 // src/components/GenreCard.jsx
 import React, { useState } from "react";
-import "../css/GenreCard.css";
 
 export default function GenreCard({ genre, events }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="genre-card">
-      <button className="genre-header" onClick={() => setExpanded(!expanded)}>
+    <div
+      style={{
+        border: "1px solid #ccc",
+        borderRadius: "6px",
+        marginBottom: "12px",
+        overflow: "hidden",
+      }}
+    >
+      <button
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          width: "100%",
+          textAlign: "left",
+          background: "#f0f0f0",
+          padding: "8px 12px",
+          border: "none",
+          fontWeight: "bold",
+          cursor: "pointer",
+        }}
+      >
         {genre} ({events.length})
       </button>
       {expanded && (
-        <div className="genre-events">
+        <div style={{ padding: "8px 12px", background: "#fff" }}>
           {events.map((e) => (
-            <div key={e.id} className="event-card">
+            <div
+              key={e.id}
+              style={{ padding: "6px 0", borderBottom: "1px solid #eee" }}
+            >
               <h3>{e.title}</h3>
               <p>
                 {e.start.toLocaleString()} - {e.end.toLocaleString()}
