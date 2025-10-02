@@ -1,161 +1,183 @@
-// src/CalendarPage.jsx
-import React, { useEffect, useState } from "react";
-import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import { format, parse, startOfWeek, getDay } from "date-fns";
-import enUS from "date-fns/locale/en-US";
+// src/pages/CalendarPage.jsx
+import React, { useEffect, useState, useMemo } from "react";
 import { auth, db } from "../firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import {
-  collection,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  doc,
-  Timestamp,
-  serverTimestamp,
-} from "firebase/firestore";
-import EventFormModal from "../components/eventFormModal";
+import { collection, onSnapshot } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-
-const locales = { "en-US": enUS };
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
+import {
+  startOfMonth,
+  endOfMonth,
   startOfWeek,
-  getDay,
-  locales,
-});
+  endOfWeek,
+  addDays,
+  isSameMonth,
+  isToday,
+  subMonths,
+  addMonths,
+  format,
+} from "date-fns";
+
+import "../css/CalendarPage.css";
 
 export default function CalendarPage() {
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
-  const [isAddModalOpen, setAddModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const navigate = useNavigate();
 
-  // Auth state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
   }, []);
 
-  // Load all events from Firestore
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "events"), (snapshot) => {
-      setEvents(
-        snapshot.docs.map((doc) => {
-          const d = doc.data();
-          const toDate = (val) => (val?.toDate ? val.toDate() : val);
-          return {
-            id: doc.id,
-            title: d.title,
-            start: toDate(d.start),
-            end: toDate(d.end),
-            allDay: d.allDay,
-            userId: d.userId, // used for delete permission
-          };
-        })
-      );
+      const loadedEvents = snapshot.docs.map((d) => {
+        const data = d.data();
+        const toDate = (v) => (v?.toDate ? v.toDate() : new Date(v));
+        return {
+          id: d.id,
+          title: data.title,
+          start: toDate(data.start),
+          end: toDate(data.end),
+          location: data.location,
+          genre: data.genre,
+          description: data.description,
+          link: data.link,
+          userId: data.userId,
+        };
+      });
+      setEvents(loadedEvents);
     });
     return () => unsub();
   }, []);
 
-  // Save new event
-  const handleSaveEvent = async (newEvent) => {
-    if (!user) return;
-    await addDoc(collection(db, "events"), {
-      ...newEvent,
-      start: Timestamp.fromDate(newEvent.start),
-      end: Timestamp.fromDate(newEvent.end),
-      userId: user.uid,
-      createdAt: serverTimestamp(),
-    });
-    setAddModalOpen(false);
+  const formatDateKey = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   };
 
-  // When user clicks an event
-  const handleSelectEvent = (event) => {
-    setSelectedEvent(event);
+  const getDateRangeKeys = (start, end) => {
+    const keys = [];
+    let cur = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    while (cur <= last) {
+      keys.push(formatDateKey(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return keys;
   };
+
+  const eventsByDay = useMemo(() => {
+    const map = {};
+    events.forEach((ev) => {
+      if (!ev.start || !ev.end) return;
+      const keys = getDateRangeKeys(ev.start, ev.end);
+      const genre = ev.genre || "uncategorized";
+      keys.forEach((k) => {
+        if (!map[k]) map[k] = {};
+        if (!map[k][genre]) map[k][genre] = [];
+        map[k][genre].push(ev);
+      });
+    });
+    return map;
+  }, [events]);
+
+  const monthMatrix = useMemo(() => {
+    const startMonth = startOfMonth(currentMonth);
+    const endMonth = endOfMonth(currentMonth);
+    const startDate = startOfWeek(startMonth);
+    const endDate = endOfWeek(endMonth);
+
+    const weeks = [];
+    let day = startDate;
+    while (day <= endDate) {
+      const week = [];
+      for (let i = 0; i < 7; i++) {
+        week.push(day);
+        day = addDays(day, 1);
+      }
+      weeks.push(week);
+    }
+    return weeks;
+  }, [currentMonth]);
+
+  const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Community Calendar</h1>
+    <div className="calendar-container">
+      <div className="calendar-header">
+        <h1>Community Calendar</h1>
         {user ? (
-          <button
-            onClick={() => setAddModalOpen(true)}
-            className="px-4 py-2 bg-green-500 text-white rounded"
-          >
+          <button className="btn" onClick={() => navigate("/create-event")}>
             + Add Event
           </button>
         ) : (
-          <button
-            onClick={() => navigate("/signin")}
-            className="px-4 py-2 bg-gray-600 text-white rounded"
-          >
+          <button className="btn" onClick={() => navigate("/login")}>
             Sign in to Add Event
           </button>
         )}
       </div>
 
-      <Calendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: "75vh" }}
-        views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
-        onSelectEvent={handleSelectEvent} // open details modal
-      />
+      <div className="month-nav">
+        <button className="nav-btn" onClick={handlePrevMonth}>
+          Prev
+        </button>
+        <span>{format(currentMonth, "MMMM yyyy")}</span>
+        <button className="nav-btn" onClick={handleNextMonth}>
+          Next
+        </button>
+      </div>
 
-      {/* Add Event Modal */}
-      <EventFormModal
-        isOpen={isAddModalOpen}
-        onClose={() => setAddModalOpen(false)}
-        onSave={handleSaveEvent}
-      />
-
-      {/* Event Details + Delete Modal */}
-      {selectedEvent && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-[400px]">
-            <h2 className="text-xl font-bold mb-4">{selectedEvent.title}</h2>
-            <p className="mb-4">
-              {selectedEvent.start.toLocaleString()} -{" "}
-              {selectedEvent.end.toLocaleString()}
-            </p>
-
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                onClick={() => setSelectedEvent(null)}
-                className="px-3 py-2 bg-gray-300 rounded"
-              >
-                Close
-              </button>
-
-              {/* Only show delete if user is creator */}
-              {user?.uid === selectedEvent.userId && (
-                <button
-                  onClick={async () => {
-                    const confirmDelete = window.confirm(
-                      `Delete "${selectedEvent.title}"?`
-                    );
-                    if (!confirmDelete) return;
-
-                    await deleteDoc(doc(db, "events", selectedEvent.id));
-                    setSelectedEvent(null);
-                  }}
-                  className="px-3 py-2 bg-red-500 text-white rounded"
-                >
-                  Delete
-                </button>
-              )}
-            </div>
+      <div className="weekdays">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+          <div key={d} className="weekday">
+            {d}
           </div>
+        ))}
+      </div>
+
+      {monthMatrix.map((week, wi) => (
+        <div key={wi} className="week">
+          {week.map((day, di) => {
+            const dayKey = formatDateKey(day);
+            const dayEvents = eventsByDay[dayKey] || {};
+            const today = isToday(day);
+            const inMonth = day.getMonth() === currentMonth.getMonth();
+
+            return (
+              <div
+                key={di}
+                className={`day-cell ${today ? "today" : ""} ${
+                  !inMonth ? "other-month" : ""
+                }`}
+              >
+                <div className="day-number">{day.getDate()}</div>
+                <div className="events-container">
+                  {Object.entries(dayEvents).map(([genre, list]) => (
+                    <button
+                      key={genre}
+                      onClick={() =>
+                        navigate(`/day/${dayKey}/${encodeURIComponent(genre)}`)
+                      }
+                      className="event-btn"
+                      title={`${list.length} ${genre} event${
+                        list.length > 1 ? "s" : ""
+                      }`}
+                    >
+                      <span className="count">{list.length}</span>
+                      <span className="genre">{genre}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
+      ))}
     </div>
   );
 }

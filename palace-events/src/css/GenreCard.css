@@ -1,0 +1,30 @@
+.genre-card {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.genre-header {
+  width: 100%;
+  text-align: left;
+  background: #f0f0f0;
+  padding: 8px 12px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.genre-events {
+  padding: 8px 12px;
+  background: #fff;
+}
+
+.event-card {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.event-card:last-child {
+  border-bottom: none;
+}
