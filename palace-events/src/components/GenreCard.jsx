@@ -1,8 +1,21 @@
 // src/components/GenreCard.jsx
 import React, { useState } from "react";
+import { auth, db } from "../firebase/firebase";
+import { deleteDoc, doc } from "firebase/firestore";
 
 export default function GenreCard({ genre, events }) {
   const [expanded, setExpanded] = useState(false);
+
+  const handleDelete = async (eventId) => {
+    try {
+      await deleteDoc(doc(db, "events", eventId));
+      console.log("Event deleted:", eventId);
+    } catch (err) {
+      console.error("Error deleting event:", err);
+    }
+  };
+
+  const currentUser = auth.currentUser;
 
   return (
     <div
@@ -27,12 +40,16 @@ export default function GenreCard({ genre, events }) {
       >
         {genre} ({events.length})
       </button>
+
       {expanded && (
         <div style={{ padding: "8px 12px", background: "#fff" }}>
           {events.map((e) => (
             <div
               key={e.id}
-              style={{ padding: "6px 0", borderBottom: "1px solid #eee" }}
+              style={{
+                padding: "6px 0",
+                borderBottom: "1px solid #eee",
+              }}
             >
               <h3>{e.title}</h3>
               <p>
@@ -47,6 +64,23 @@ export default function GenreCard({ genre, events }) {
                     Event link
                   </a>
                 </p>
+              )}
+
+              {currentUser && e.userId === currentUser.uid && (
+                <button
+                  onClick={() => handleDelete(e.id)}
+                  style={{
+                    marginTop: "6px",
+                    padding: "4px 8px",
+                    background: "#ff4d4f",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  🗑 Delete
+                </button>
               )}
             </div>
           ))}
