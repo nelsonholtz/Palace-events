@@ -23,10 +23,11 @@ export default function GenreDayPage() {
       try {
         const start = new Date(`${date}T00:00:00`);
         const end = new Date(`${date}T23:59:59`);
+
         const q = query(
           collection(db, "events"),
-          where("start", ">=", Timestamp.fromDate(start)),
-          where("start", "<=", Timestamp.fromDate(end))
+          where("start", "<=", Timestamp.fromDate(end)), // started before day ends
+          where("end", ">=", Timestamp.fromDate(start)) // ends after day starts
         );
 
         const snap = await getDocs(q);
