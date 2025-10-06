@@ -1,18 +1,17 @@
-// src/pages/GenreDayPage.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase/firebase";
 import {
   collection,
+  getDocs,
   query,
   where,
-  getDocs,
   Timestamp,
 } from "firebase/firestore";
 import GenreCard from "../components/GenreCard";
 
 export default function GenreDayPage() {
-  const { date } = useParams(); // date = YYYY-MM-DD
+  const { date } = useParams(); // YYYY-MM-DD
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -26,8 +25,8 @@ export default function GenreDayPage() {
 
         const q = query(
           collection(db, "events"),
-          where("start", "<=", Timestamp.fromDate(end)), // started before day ends
-          where("end", ">=", Timestamp.fromDate(start)) // ends after day starts
+          where("start", "<=", Timestamp.fromDate(end)),
+          where("end", ">=", Timestamp.fromDate(start))
         );
 
         const snap = await getDocs(q);
@@ -46,6 +45,7 @@ export default function GenreDayPage() {
             userId: data.userId,
           };
         });
+
         setEvents(loaded);
       } catch (err) {
         console.error("Failed to fetch events:", err);
@@ -58,16 +58,43 @@ export default function GenreDayPage() {
     fetchEvents();
   }, [date]);
 
-  // Group events by genre
+  // --- Multi-day mapping helper ---
+  const formatDateKey = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
+  const getDateRangeKeys = (start, end) => {
+    const keys = [];
+    let current = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate()
+    );
+    const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    while (current <= last) {
+      keys.push(formatDateKey(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return keys;
+  };
+
+  // Group events by genre for this specific day
   const eventsByGenre = useMemo(() => {
     const map = {};
     events.forEach((ev) => {
+      // Check if event overlaps this day
+      const dayKeys = getDateRangeKeys(ev.start, ev.end);
+      if (!dayKeys.includes(date)) return;
+
       const g = ev.genre || "uncategorized";
       if (!map[g]) map[g] = [];
       map[g].push(ev);
     });
     return map;
-  }, [events]);
+  }, [events, date]);
 
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>

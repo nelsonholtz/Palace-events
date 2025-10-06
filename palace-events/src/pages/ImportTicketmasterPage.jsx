@@ -44,19 +44,33 @@ export default function ImportTicketmasterPage() {
         return;
       }
 
-      const upcoming = data._embedded.events.map((e) => ({
-        id: e.id,
-        title: e.name,
-        start: e.dates.start.dateTime
-          ? new Date(e.dates.start.dateTime)
-          : new Date(),
-        end: e.dates.end ? new Date(e.dates.end.dateTime) : new Date(),
-        description: e.info || "No description.",
-        link: e.url,
-        location: e._embedded.venues[0].name || "TBA",
-        genre: "ticketmaster",
-        userId: "ticketmaster",
-      }));
+      const upcoming = data._embedded.events.map((e) => {
+        const startDate = new Date(e.dates.start.dateTime);
+
+        // Ensure end date is valid: use end.dateTime if available, otherwise +2 hours
+        let endDate;
+        if (e.dates.end?.dateTime) {
+          endDate = new Date(e.dates.end.dateTime);
+        } else {
+          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2 hours
+        }
+
+        // Safety: ensure end is always after start
+        if (endDate < startDate)
+          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
+        return {
+          id: e.id,
+          title: e.name,
+          start: startDate,
+          end: endDate,
+          description: e.info || "No description.",
+          link: e.url,
+          location: e._embedded.venues[0]?.name || "TBA",
+          genre: "ticketmaster",
+          userId: "ticketmaster",
+        };
+      });
 
       setEvents(upcoming);
       setMessage(`Found ${upcoming.length} events 🎨`);
@@ -103,7 +117,6 @@ export default function ImportTicketmasterPage() {
       <button onClick={() => navigate(-1)} style={{ marginBottom: "16px" }}>
         ← Back
       </button>
-
       <h1>Import Events from Ticketmaster</h1>
 
       <div
