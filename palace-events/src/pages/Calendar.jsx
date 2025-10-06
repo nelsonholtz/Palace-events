@@ -11,11 +11,13 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const navigate = useNavigate();
 
+  // --- Listen for user authentication ---
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
   }, []);
 
+  // --- Fetch all events from Firestore ---
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "events"), (snapshot) => {
       const loadedEvents = snapshot.docs.map((d) => {
@@ -34,6 +36,7 @@ export default function CalendarPage() {
     return () => unsub();
   }, []);
 
+  // --- Utility functions ---
   const formatDateKey = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -56,6 +59,7 @@ export default function CalendarPage() {
     return keys;
   };
 
+  // --- Group events by date and genre ---
   const eventsByDay = useMemo(() => {
     const map = {};
     events.forEach((ev) => {
@@ -71,15 +75,18 @@ export default function CalendarPage() {
     return map;
   }, [events]);
 
+  // --- Month navigation ---
   const prevMonth = () =>
     setCurrentDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
     );
+
   const nextMonth = () =>
     setCurrentDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
     );
 
+  // --- Calendar rendering ---
   const renderCalendar = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -128,13 +135,16 @@ export default function CalendarPage() {
                 {Object.entries(groups).map(([genre, evs]) => (
                   <button
                     key={genre}
-                    className="genre-button"
+                    className={`genre-button ${
+                      genre === "eventbrite-art" ? "eventbrite-art" : "default"
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/day/${dayKey}/${encodeURIComponent(genre)}`);
                     }}
                   >
-                    {genre} ({evs.length})
+                    {genre === "eventbrite-art" ? "🎨 Art Events" : genre} (
+                    {evs.length})
                   </button>
                 ))}
               </div>
@@ -145,17 +155,29 @@ export default function CalendarPage() {
     );
   };
 
+  // --- Render full calendar page ---
   return (
     <div className="calendar-page">
       <h1>Community Calendar</h1>
+
       {user && (
-        <button
-          className="add-event-btn"
-          onClick={() => navigate("/create-event")}
-        >
-          + Add Event
-        </button>
+        <div className="calendar-actions">
+          <button
+            className="add-event-btn"
+            onClick={() => navigate("/create-event")}
+          >
+            + Add Event
+          </button>
+
+          <button
+            className="import-event-btn"
+            onClick={() => navigate("/import-eventbrite")}
+          >
+            📥 Import Eventbrite Art Events
+          </button>
+        </div>
       )}
+
       {renderCalendar()}
     </div>
   );

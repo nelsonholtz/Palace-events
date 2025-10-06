@@ -104,3 +104,96 @@
 .add-event-btn:hover {
   background-color: #009e8f;
 }
+
+.calendar-page {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.weekday-grid,
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day-cell {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px;
+  min-height: 80px;
+  background: #fafafa;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.day-cell:hover {
+  background: #f0f8ff;
+}
+
+.day-number {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.genre-button {
+  display: block;
+  margin: 4px 0;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.genre-button.default {
+  background: #007bff;
+  color: #fff;
+}
+
+.genre-button.eventbrite-art {
+  background: #ff5a5f; /* Eventbrite red */
+  color: #fff;
+}
+
+.calendar-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.add-event-btn,
+.import-event-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.add-event-btn {
+  background: #28a745;
+}
+
+.import-event-btn {
+  background: #6f42c1;
+}
+
+.add-event-btn:hover {
+  background: #218838;
+}
+
+.import-event-btn:hover {
+  background: #5936a2;
+}
