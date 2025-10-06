@@ -11,29 +11,52 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const navigate = useNavigate();
 
+  // --- Auth listener ---
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
   }, []);
 
+  // --- Fetch all events from Firestore ---
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "events"), (snapshot) => {
       const loadedEvents = snapshot.docs.map((d) => {
         const data = d.data();
-        const toDate = (v) => (v?.toDate ? v.toDate() : new Date(v));
+
+        // ✅ Robust conversion for Firestore timestamps or plain objects
+        const toDate = (v) => {
+          if (!v) return null;
+          if (v instanceof Date) return v;
+          if (v.toDate) return v.toDate();
+          if (typeof v.seconds === "number") return new Date(v.seconds * 1000);
+          return new Date(v);
+        };
+
         return {
           id: d.id,
           title: data.title,
           start: toDate(data.start),
           end: toDate(data.end),
-          genre: data.genre || "uncategorized",
+          genre: data.genre || "ticketmaster",
         };
       });
+
+      console.log(
+        "✅ Loaded events:",
+        loadedEvents.map((e) => ({
+          title: e.title,
+          start: e.start?.toISOString?.(),
+          end: e.end?.toISOString?.(),
+          genre: e.genre,
+        }))
+      );
+
       setEvents(loadedEvents);
     });
     return () => unsub();
   }, []);
 
+  // --- Date helpers ---
   const formatDateKey = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -56,11 +79,16 @@ export default function CalendarPage() {
     return keys;
   };
 
+  // --- Group events by day & genre ---
   const eventsByDay = useMemo(() => {
     const map = {};
     events.forEach((ev) => {
-      if (!ev.start || !ev.end) return;
-      const keys = getDateRangeKeys(ev.start, ev.end);
+      if (!(ev.start instanceof Date) || isNaN(ev.start)) return;
+
+      // ✅ Ensure there's always an end date
+      const endDate = ev.end && ev.end >= ev.start ? ev.end : ev.start;
+
+      const keys = getDateRangeKeys(ev.start, endDate);
       keys.forEach((key) => {
         const genre = ev.genre;
         if (!map[key]) map[key] = {};
@@ -71,6 +99,7 @@ export default function CalendarPage() {
     return map;
   }, [events]);
 
+  // --- Month navigation ---
   const prevMonth = () =>
     setCurrentDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
@@ -80,6 +109,7 @@ export default function CalendarPage() {
       new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
     );
 
+  // --- Render calendar ---
   const renderCalendar = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -121,20 +151,35 @@ export default function CalendarPage() {
             return (
               <div
                 key={dayKey}
-                className="day-cell"
+                className={`day-cell ${
+                  eventsByDay[dayKey]?.ticketmaster ? "has-ticketmaster" : ""
+                }`}
                 onClick={() => navigate(`/day/${dayKey}`)}
               >
                 <div className="day-number">{day.getDate()}</div>
+
+                {/* 🎟️ Optional badge */}
+                {eventsByDay[dayKey]?.ticketmaster && (
+                  <div className="ticketmaster-badge">🎟️</div>
+                )}
+
                 {Object.entries(groups).map(([genre, evs]) => (
                   <button
                     key={genre}
-                    className="genre-button"
+                    className={`genre-button ${
+                      genre === "ticketmaster"
+                        ? "ticketmaster-genre"
+                        : "default"
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/day/${dayKey}/${encodeURIComponent(genre)}`);
                     }}
                   >
-                    {genre} ({evs.length})
+                    {genre === "ticketmaster"
+                      ? "🎟️ Ticketmaster Events"
+                      : genre}{" "}
+                    ({evs.length})
                   </button>
                 ))}
               </div>
@@ -149,12 +194,20 @@ export default function CalendarPage() {
     <div className="calendar-page">
       <h1>Community Calendar</h1>
       {user && (
-        <button
-          className="add-event-btn"
-          onClick={() => navigate("/create-event")}
-        >
-          + Add Event
-        </button>
+        <div className="calendar-actions">
+          <button
+            className="add-event-btn"
+            onClick={() => navigate("/create-event")}
+          >
+            + Add Event
+          </button>
+          <button
+            className="import-event-btn"
+            onClick={() => navigate("/import-ticketmaster")}
+          >
+            📥 Import Ticketmaster Events
+          </button>
+        </div>
       )}
       {renderCalendar()}
     </div>

@@ -104,3 +104,29 @@
 .add-event-btn:hover {
   background-color: #009e8f;
 }
+
+.ticketmaster-genre {
+  background-color: #0069d9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.ticketmaster-genre:hover {
+  background-color: #0053b3;
+}
+
+/* Highlight for days that have Ticketmaster events */
+.has-ticketmaster {
+  background: rgba(0, 123, 255, 0.08);
+  border: 1px solid rgba(0, 123, 255, 0.2);
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.has-ticketmaster:hover {
+  background: rgba(0, 123, 255, 0.15);
+  border-color: rgba(0, 123, 255, 0.4);
+}

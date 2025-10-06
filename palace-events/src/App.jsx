@@ -6,6 +6,8 @@ import Header from "./components/header/header";
 import Home from "./components/home/home";
 import CreateEventPage from "./pages/CreateEventPage";
 import GenreDayPage from "./pages/GenreDayPage";
+import ImportTicketmasterPage from "./pages/ImportTicketmasterPage";
+
 import "./css/App.css";
 
 function App() {
@@ -20,6 +22,10 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/create-event" element={<CreateEventPage />} />
         <Route path="/day/:date/:genre" element={<GenreDayPage />} />
+        <Route
+          path="/import-ticketmaster"
+          element={<ImportTicketmasterPage />}
+        />
       </Routes>
     </>
   );
