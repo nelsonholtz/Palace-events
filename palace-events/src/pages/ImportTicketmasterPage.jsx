@@ -68,7 +68,7 @@ export default function ImportTicketmasterPage() {
           link: e.url,
           location: e._embedded.venues[0]?.name || "TBA",
           genre: "ticketmaster",
-          userId: auth.currentUser ? auth.currentUser.uid : "ticketmaster",
+          userId: "ticketmaster",
         };
       });
 
