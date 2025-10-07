@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../firebase/firebase";
+import { db, auth } from "../firebase/firebase";
 import {
   collection,
   addDoc,
@@ -13,104 +13,119 @@ import { useNavigate } from "react-router-dom";
 export default function ImportTicketmasterPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [queryText, setQueryText] = useState("art");
-  const [location, setLocation] = useState("London");
+  const [search, setSearch] = useState({ query: "art", location: "London" });
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
   const apiKey = import.meta.env.VITE_TICKETMASTER_API_KEY;
 
   const fetchEvents = async () => {
+    // Check if user is signed in
+    if (!auth.currentUser) {
+      setMessage("Please sign in to import events");
+      return;
+    }
+
+    const currentUserUID = auth.currentUser.uid;
+    console.log("👤 Importing events for user:", currentUserUID);
+
     setLoading(true);
     setMessage("");
 
     try {
       const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${encodeURIComponent(
-        queryText
-      )}&city=${encodeURIComponent(location)}&apikey=${apiKey}`;
+        search.query
+      )}&city=${encodeURIComponent(search.location)}&apikey=${apiKey}`;
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Ticketmaster fetch failed: ${res.status}`);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch events");
 
-      const data = await res.json();
+      const data = await response.json();
+      const eventsData = data._embedded?.events || [];
 
-      if (
-        !data._embedded ||
-        !data._embedded.events ||
-        data._embedded.events.length === 0
-      ) {
+      if (eventsData.length === 0) {
         setMessage("No events found for this search.");
         setEvents([]);
         return;
       }
 
-      const upcoming = data._embedded.events.map((e) => {
-        const startDate = new Date(e.dates.start.dateTime);
+      const formattedEvents = eventsData.map((event) => {
+        const startDate = new Date(event.dates.start.dateTime);
+        let endDate = event.dates.end?.dateTime
+          ? new Date(event.dates.end.dateTime)
+          : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
 
-        // Ensure end date is valid: use end.dateTime if available, otherwise +2 hours
-        let endDate;
-        if (e.dates.end?.dateTime) {
-          endDate = new Date(e.dates.end.dateTime);
-        } else {
-          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2 hours
+        if (endDate < startDate) {
+          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
         }
 
-        // Safety: ensure end is always after start
-        if (endDate < startDate)
-          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-
         return {
-          id: e.id,
-          title: e.name,
+          ticketmasterId: event.id, // Store Ticketmaster ID separately
+          title: event.name,
           start: startDate,
           end: endDate,
-          description: e.info || "No description.",
-          link: e.url,
-          location: e._embedded.venues[0]?.name || "TBA",
+          description: event.info || "No description available",
+          link: event.url,
+          location: event._embedded.venues[0]?.name || "Location TBA",
           genre: "ticketmaster",
-          userId: "ticketmaster",
+          userId: currentUserUID, // Store actual user UID
         };
       });
 
-      setEvents(upcoming);
-      setMessage(`Found ${upcoming.length} events 🎨`);
-    } catch (err) {
-      console.error("🔥 Error fetching Ticketmaster events:", err);
-      setMessage("Failed to fetch Ticketmaster events 😢");
+      console.log("✅ Formatted events:", formattedEvents);
+      setEvents(formattedEvents);
+      setMessage(`Found ${formattedEvents.length} events 🎉`);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setMessage("Failed to fetch events. Please try again.");
       setEvents([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const addToCalendar = async (eventData) => {
+  const addToCalendar = async (event) => {
+    if (!auth.currentUser) {
+      setMessage("Please sign in to add events");
+      return;
+    }
+
     try {
+      // Check if event already exists using ticketmasterId
       const q = query(
         collection(db, "events"),
-        where("id", "==", eventData.id)
+        where("ticketmasterId", "==", event.ticketmasterId)
       );
       const existing = await getDocs(q);
+
       if (!existing.empty) {
-        setMessage(`⚠️ "${eventData.title}" is already in your calendar`);
+        setMessage(`"${event.title}" is already in your calendar`);
         return;
       }
 
+      // Add to Firestore - let Firestore generate its own document ID
       await addDoc(collection(db, "events"), {
-        ...eventData,
-        start: Timestamp.fromDate(eventData.start),
-        end: Timestamp.fromDate(eventData.end),
+        ...event,
+        ticketmasterId: event.ticketmasterId, // Store separately
+        start: Timestamp.fromDate(event.start),
+        end: Timestamp.fromDate(event.end),
+        userId: auth.currentUser.uid,
       });
 
-      setMessage(`✅ "${eventData.title}" added to your calendar`);
-    } catch (err) {
-      console.error(err);
-      setMessage("Failed to add event to calendar.");
+      setMessage(`✅ "${event.title}" added to calendar`);
+    } catch (error) {
+      console.error("Error adding event:", error);
+      setMessage("Failed to add event to calendar");
     }
   };
 
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  const updateSearch = (field, value) => {
+    setSearch((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
@@ -130,15 +145,15 @@ export default function ImportTicketmasterPage() {
         <input
           type="text"
           placeholder="Search events…"
-          value={queryText}
-          onChange={(e) => setQueryText(e.target.value)}
+          value={search.query}
+          onChange={(e) => updateSearch("query", e.target.value)}
           style={{ padding: "8px", flex: "1" }}
         />
         <input
           type="text"
           placeholder="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          value={search.location}
+          onChange={(e) => updateSearch("location", e.target.value)}
           style={{ padding: "8px", flex: "1" }}
         />
         <button
@@ -166,7 +181,7 @@ export default function ImportTicketmasterPage() {
       ) : (
         events.map((e) => (
           <div
-            key={e.id}
+            key={e.ticketmasterId}
             style={{
               border: "1px solid #ccc",
               borderRadius: "8px",

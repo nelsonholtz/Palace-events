@@ -11,29 +11,25 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const navigate = useNavigate();
 
-  // --- Auth listener ---
+  // Auth listener
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
-    return () => unsub();
+    return onAuthStateChanged(auth, setUser);
   }, []);
 
-  // --- Fetch all events from Firestore ---
+  // Fetch events
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "events"), (snapshot) => {
-      const loadedEvents = snapshot.docs.map((d) => {
-        const data = d.data();
-
-        // ✅ Robust conversion for Firestore timestamps or plain objects
-        const toDate = (v) => {
-          if (!v) return null;
-          if (v instanceof Date) return v;
-          if (v.toDate) return v.toDate();
-          if (typeof v.seconds === "number") return new Date(v.seconds * 1000);
-          return new Date(v);
+    return onSnapshot(collection(db, "events"), (snapshot) => {
+      const loadedEvents = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const toDate = (val) => {
+          if (!val) return null;
+          if (val.toDate) return val.toDate();
+          if (val.seconds) return new Date(val.seconds * 1000);
+          return new Date(val);
         };
 
         return {
-          id: d.id,
+          id: doc.id,
           title: data.title,
           start: toDate(data.start),
           end: toDate(data.end),
@@ -41,179 +37,133 @@ export default function CalendarPage() {
           userId: data.userId,
         };
       });
-
       setEvents(loadedEvents);
     });
-    return () => unsub();
   }, []);
 
-  // ✅ Filter events based on login status
+  // Filter events for current user
   const visibleEvents = useMemo(() => {
-    return events.filter((ev) => {
-      // Public (not logged in) → hide ticketmaster
-      if (!user && ev.genre === "ticketmaster") return false;
-
-      // Logged in → only show your own Ticketmaster events
-      // if (user && ev.genre === "ticketmaster" && ev.userId !== user.uid)
-      //   return false;
-
-      // Everything else is visible
-      return true;
-    });
+    return events.filter((ev) => (!user ? ev.genre !== "ticketmaster" : true));
   }, [events, user]);
 
-  // --- Date helpers ---
-  const formatDateKey = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  };
-
-  const getDateRangeKeys = (start, end) => {
-    const keys = [];
-    let current = new Date(
-      start.getFullYear(),
-      start.getMonth(),
-      start.getDate()
-    );
-    const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-    while (current <= last) {
-      keys.push(formatDateKey(current));
-      current.setDate(current.getDate() + 1);
-    }
-    return keys;
-  };
-
-  // --- Group events by day & genre ---
+  // Group events by day
   const eventsByDay = useMemo(() => {
     const map = {};
-    visibleEvents.forEach((ev) => {
-      if (!(ev.start instanceof Date) || isNaN(ev.start)) return;
 
-      const endDate = ev.end && ev.end >= ev.start ? ev.end : ev.start;
-      const keys = getDateRangeKeys(ev.start, endDate);
+    visibleEvents.forEach((event) => {
+      if (!event.start || isNaN(event.start)) return;
 
-      keys.forEach((key) => {
-        const genre = ev.genre;
-        if (!map[key]) map[key] = {};
-        if (!map[key][genre]) map[key][genre] = [];
-        map[key][genre].push(ev);
-      });
+      const start = new Date(event.start);
+      const end = event.end && !isNaN(event.end) ? new Date(event.end) : start;
+
+      // Get all dates this event spans
+      const current = new Date(start);
+      while (current <= end) {
+        const dateKey = current.toISOString().split("T")[0];
+        if (!map[dateKey]) map[dateKey] = {};
+        if (!map[dateKey][event.genre]) map[dateKey][event.genre] = [];
+
+        map[dateKey][event.genre].push(event);
+        current.setDate(current.getDate() + 1);
+      }
     });
+
     return map;
   }, [visibleEvents]);
 
-  // --- Month navigation ---
-  const prevMonth = () =>
+  // Month navigation
+  const changeMonth = (direction) => {
     setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-    );
-  const nextMonth = () =>
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
-    );
-
-  // --- Render calendar ---
-  const renderCalendar = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-
-    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-    const days = [];
-    for (let i = 0; i < firstDay.getDay(); i++) days.push(null);
-    for (let i = 1; i <= lastDay.getDate(); i++)
-      days.push(new Date(year, month, i));
-
-    return (
-      <>
-        <div className="calendar-header">
-          <button onClick={prevMonth}>{"<"}</button>
-          <h2>
-            {currentDate.toLocaleString("default", {
-              month: "long",
-              year: "numeric",
-            })}
-          </h2>
-          <button onClick={nextMonth}>{">"}</button>
-        </div>
-
-        <div className="weekday-grid">
-          {weekdays.map((day) => (
-            <div key={day}>{day}</div>
-          ))}
-        </div>
-
-        <div className="days-grid">
-          {days.map((day, idx) => {
-            if (!day) return <div key={idx} className="day-cell"></div>;
-            const dayKey = formatDateKey(day);
-            const groups = eventsByDay[dayKey] || {};
-
-            return (
-              <div
-                key={dayKey}
-                className={`day-cell ${
-                  eventsByDay[dayKey]?.ticketmaster ? "has-ticketmaster" : ""
-                }`}
-                onClick={() => navigate(`/day/${dayKey}`)}
-              >
-                <div className="day-number">{day.getDate()}</div>
-
-                {eventsByDay[dayKey]?.ticketmaster && user && (
-                  <div className="ticketmaster-badge">🎟️</div>
-                )}
-
-                {Object.entries(groups).map(([genre, evs]) => (
-                  <button
-                    key={genre}
-                    className={`genre-button ${
-                      genre === "ticketmaster"
-                        ? "ticketmaster-genre"
-                        : "default"
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/day/${dayKey}/${encodeURIComponent(genre)}`);
-                    }}
-                  >
-                    {genre === "ticketmaster"
-                      ? "🎟️ Ticketmaster Events"
-                      : genre}{" "}
-                    ({evs.length})
-                  </button>
-                ))}
-              </div>
-            );
-          })}
-        </div>
-      </>
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + direction, 1)
     );
   };
+
+  // Calendar grid
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const days = [];
+
+  // Add empty days for padding
+  for (let i = 0; i < firstDay.getDay(); i++) days.push(null);
+  // Add actual days of month
+  for (let i = 1; i <= lastDay.getDate(); i++) {
+    days.push(new Date(year, month, i));
+  }
 
   return (
     <div className="calendar-page">
       <h1>Community Calendar</h1>
+
       {user && (
         <div className="calendar-actions">
-          <button
-            className="add-event-btn"
-            onClick={() => navigate("/create-event")}
-          >
-            + Add Event
-          </button>
-          <button
-            className="import-event-btn"
-            onClick={() => navigate("/import-ticketmaster")}
-          >
+          <button onClick={() => navigate("/create-event")}>+ Add Event</button>
+          <button onClick={() => navigate("/import-ticketmaster")}>
             📥 Import Ticketmaster Events
           </button>
         </div>
       )}
-      {renderCalendar()}
+
+      <div className="calendar-header">
+        <button onClick={() => changeMonth(-1)}>{"<"}</button>
+        <h2>
+          {currentDate.toLocaleString("default", {
+            month: "long",
+            year: "numeric",
+          })}
+        </h2>
+        <button onClick={() => changeMonth(1)}>{">"}</button>
+      </div>
+
+      <div className="weekday-grid">
+        {weekdays.map((day) => (
+          <div key={day}>{day}</div>
+        ))}
+      </div>
+
+      <div className="days-grid">
+        {days.map((day, index) => {
+          if (!day) return <div key={index} className="day-cell"></div>;
+
+          const dateKey = day.toISOString().split("T")[0];
+          const dayEvents = eventsByDay[dateKey] || {};
+
+          return (
+            <div
+              key={dateKey}
+              className={`day-cell ${
+                dayEvents.ticketmaster ? "has-ticketmaster" : ""
+              }`}
+              onClick={() => navigate(`/day/${dateKey}`)}
+            >
+              <div className="day-number">{day.getDate()}</div>
+
+              {dayEvents.ticketmaster && user && (
+                <div className="ticketmaster-badge">🎟️</div>
+              )}
+
+              {Object.entries(dayEvents).map(([genre, events]) => (
+                <button
+                  key={genre}
+                  className={`genre-button ${
+                    genre === "ticketmaster" ? "ticketmaster-genre" : "default"
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/day/${dateKey}/${genre}`);
+                  }}
+                >
+                  {genre === "ticketmaster" ? "🎟️ Events" : genre} (
+                  {events.length})
+                </button>
+              ))}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
