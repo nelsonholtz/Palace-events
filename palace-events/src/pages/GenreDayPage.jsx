@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { db } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
 import {
   collection,
   getDocs,
@@ -8,13 +8,21 @@ import {
   where,
   Timestamp,
 } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 import GenreCard from "../components/GenreCard";
 
 export default function GenreDayPage() {
   const { date } = useParams(); // YYYY-MM-DD
   const [events, setEvents] = useState([]);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Watch for login status
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     async function fetchEvents() {
@@ -58,7 +66,6 @@ export default function GenreDayPage() {
     fetchEvents();
   }, [date]);
 
-  // --- Multi-day mapping helper ---
   const formatDateKey = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -81,11 +88,18 @@ export default function GenreDayPage() {
     return keys;
   };
 
-  // Group events by genre for this specific day
+  // Filter: Ticketmaster visible only to logged-in users
+  const visibleEvents = useMemo(() => {
+    return events.filter((ev) => {
+      if (ev.genre === "ticketmaster" && !user) return false;
+      return true;
+    });
+  }, [events, user]);
+
+  // Group events by genre
   const eventsByGenre = useMemo(() => {
     const map = {};
-    events.forEach((ev) => {
-      // Check if event overlaps this day
+    visibleEvents.forEach((ev) => {
       const dayKeys = getDateRangeKeys(ev.start, ev.end);
       if (!dayKeys.includes(date)) return;
 
@@ -94,7 +108,12 @@ export default function GenreDayPage() {
       map[g].push(ev);
     });
     return map;
-  }, [events, date]);
+  }, [visibleEvents, date]);
+
+  // Handler to remove an event from state after deletion
+  const handleRemoveEvent = (eventId) => {
+    setEvents((prev) => prev.filter((ev) => ev.id !== eventId));
+  };
 
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
@@ -107,10 +126,20 @@ export default function GenreDayPage() {
       {loading ? (
         <p>Loading…</p>
       ) : Object.keys(eventsByGenre).length === 0 ? (
-        <p>No events for this day.</p>
+        <p>
+          {user
+            ? "No events for this day."
+            : "No public events for this day. (Log in to see Ticketmaster ones 🎟️)"}
+        </p>
       ) : (
         Object.entries(eventsByGenre).map(([genre, evs]) => (
-          <GenreCard key={genre} genre={genre} events={evs} />
+          <GenreCard
+            key={genre}
+            genre={genre}
+            events={evs}
+            user={user}
+            onDelete={handleRemoveEvent} // ✅ pass delete callback
+          />
         ))
       )}
     </div>

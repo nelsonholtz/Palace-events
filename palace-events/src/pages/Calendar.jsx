@@ -37,24 +37,30 @@ export default function CalendarPage() {
           title: data.title,
           start: toDate(data.start),
           end: toDate(data.end),
-          genre: data.genre || "ticketmaster",
+          genre: data.genre || "uncategorized",
+          userId: data.userId,
         };
       });
-
-      console.log(
-        "✅ Loaded events:",
-        loadedEvents.map((e) => ({
-          title: e.title,
-          start: e.start?.toISOString?.(),
-          end: e.end?.toISOString?.(),
-          genre: e.genre,
-        }))
-      );
 
       setEvents(loadedEvents);
     });
     return () => unsub();
   }, []);
+
+  // ✅ Filter events based on login status
+  const visibleEvents = useMemo(() => {
+    return events.filter((ev) => {
+      // Public (not logged in) → hide ticketmaster
+      if (!user && ev.genre === "ticketmaster") return false;
+
+      // Logged in → only show your own Ticketmaster events
+      // if (user && ev.genre === "ticketmaster" && ev.userId !== user.uid)
+      //   return false;
+
+      // Everything else is visible
+      return true;
+    });
+  }, [events, user]);
 
   // --- Date helpers ---
   const formatDateKey = (date) => {
@@ -82,13 +88,12 @@ export default function CalendarPage() {
   // --- Group events by day & genre ---
   const eventsByDay = useMemo(() => {
     const map = {};
-    events.forEach((ev) => {
+    visibleEvents.forEach((ev) => {
       if (!(ev.start instanceof Date) || isNaN(ev.start)) return;
 
-      // ✅ Ensure there's always an end date
       const endDate = ev.end && ev.end >= ev.start ? ev.end : ev.start;
-
       const keys = getDateRangeKeys(ev.start, endDate);
+
       keys.forEach((key) => {
         const genre = ev.genre;
         if (!map[key]) map[key] = {};
@@ -97,7 +102,7 @@ export default function CalendarPage() {
       });
     });
     return map;
-  }, [events]);
+  }, [visibleEvents]);
 
   // --- Month navigation ---
   const prevMonth = () =>
@@ -158,8 +163,7 @@ export default function CalendarPage() {
               >
                 <div className="day-number">{day.getDate()}</div>
 
-                {/* 🎟️ Optional badge */}
-                {eventsByDay[dayKey]?.ticketmaster && (
+                {eventsByDay[dayKey]?.ticketmaster && user && (
                   <div className="ticketmaster-badge">🎟️</div>
                 )}
 
