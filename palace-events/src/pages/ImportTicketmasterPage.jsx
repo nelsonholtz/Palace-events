@@ -15,19 +15,26 @@ export default function ImportTicketmasterPage() {
   const [loading, setLoading] = useState(false);
   const [queryText, setQueryText] = useState("art");
   const [location, setLocation] = useState("London");
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const apiKey = import.meta.env.VITE_TICKETMASTER_API_KEY;
+  const functionUrl = import.meta.env.VITE_TICKETMASTER_FUNCTION_URL;
 
   const fetchEvents = async () => {
     setLoading(true);
     setMessage("");
 
     try {
-      const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${encodeURIComponent(
-        queryText
-      )}&city=${encodeURIComponent(location)}&apikey=${apiKey}`;
+      const url = new URL(functionUrl);
+
+      if (queryText) url.searchParams.append("keyword", queryText);
+      if (location) url.searchParams.append("city", location);
+      if (startDate)
+        url.searchParams.append("startDateTime", startDate.toISOString());
+      if (endDate)
+        url.searchParams.append("endDateTime", endDate.toISOString());
 
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Ticketmaster fetch failed: ${res.status}`);
@@ -45,25 +52,18 @@ export default function ImportTicketmasterPage() {
       }
 
       const upcoming = data._embedded.events.map((e) => {
-        const startDate = new Date(e.dates.start.dateTime);
+        const start = new Date(e.dates.start.dateTime);
+        let end = e.dates.end?.dateTime
+          ? new Date(e.dates.end.dateTime)
+          : new Date(start.getTime() + 2 * 60 * 60 * 1000);
 
-        // Ensure end date is valid: use end.dateTime if available, otherwise +2 hours
-        let endDate;
-        if (e.dates.end?.dateTime) {
-          endDate = new Date(e.dates.end.dateTime);
-        } else {
-          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2 hours
-        }
-
-        // Safety: ensure end is always after start
-        if (endDate < startDate)
-          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+        if (end < start) end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
 
         return {
           id: e.id,
           title: e.name,
-          start: startDate,
-          end: endDate,
+          start,
+          end,
           description: e.info || "No description.",
           link: e.url,
           location: e._embedded.venues[0]?.name || "TBA",
@@ -90,6 +90,7 @@ export default function ImportTicketmasterPage() {
         where("id", "==", eventData.id)
       );
       const existing = await getDocs(q);
+
       if (!existing.empty) {
         setMessage(`⚠️ "${eventData.title}" is already in your calendar`);
         return;
@@ -140,6 +141,18 @@ export default function ImportTicketmasterPage() {
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           style={{ padding: "8px", flex: "1" }}
+        />
+        <input
+          type="date"
+          value={startDate.toISOString().split("T")[0]}
+          onChange={(e) => setStartDate(new Date(e.target.value))}
+          style={{ padding: "8px" }}
+        />
+        <input
+          type="date"
+          value={endDate.toISOString().split("T")[0]}
+          onChange={(e) => setEndDate(new Date(e.target.value))}
+          style={{ padding: "8px" }}
         />
         <button
           onClick={fetchEvents}
