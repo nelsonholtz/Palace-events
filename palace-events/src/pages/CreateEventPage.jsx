@@ -8,6 +8,7 @@ import {
   Timestamp,
   serverTimestamp,
 } from "firebase/firestore";
+import { isUserStaff } from "../utils/userRoles";
 
 // SIMPLIFIED date parsing - store exactly what the user enters
 function parseLocalDateTime(value) {
@@ -58,6 +59,12 @@ export default function CreateEventPage() {
     if (!user) {
       alert("You must be signed in to create an event");
       navigate("/login");
+      return;
+    }
+
+    const staffCheck = await isUserStaff(user.uid);
+    if (!staffCheck) {
+      alert("❌ Staff access required! Only staff members can create events.");
       return;
     }
 

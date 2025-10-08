@@ -37,6 +37,8 @@ export default function Header() {
             </Link>
           </>
         )}
+
+        <button onClick={() => navigate("/profile")}>👤 My Profile</button>
       </nav>
     </header>
   );

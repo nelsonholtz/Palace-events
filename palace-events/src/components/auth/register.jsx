@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext";
 import { registerUser } from "../../firebase/auth";
 import { updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebase";
 import "../../css/AuthForm.css";
 
 const Register = () => {
@@ -15,6 +17,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [staffCode, setStaffCode] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -31,15 +34,36 @@ const Register = () => {
       const userCredential = await registerUser(email, password);
       const user = userCredential.user;
 
+      // SUPER SIMPLE STAFF CHECK
+      const isStaff = staffCode === "PALACE123"; // Your easy-to-remember code
+
       await updateProfile(user, {
         displayName: `${firstName} ${lastName}`,
         photoURL: photoURL || null,
       });
 
+      // Store user with role
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        displayName: `${firstName} ${lastName}`,
+        email: user.email,
+        photoURL: photoURL || null,
+        role: isStaff ? "staff" : "community",
+        createdAt: new Date(),
+      });
+
       setCurrentUser(user);
+
+      if (isStaff) {
+        alert("🎉 Welcome staff member! You can now create events.");
+      } else {
+        alert("🎉 Welcome to the community! You can RSVP to events.");
+      }
+
       navigate("/");
     } catch (error) {
       console.error("Registration error:", error);
+      alert("Registration failed. Please try again.");
     }
   };
 
@@ -105,6 +129,25 @@ const Register = () => {
           {showConfirmPassword ? "Hide" : "Show"}
         </button>
       </div>
+
+      {/* Simple Staff Code Field */}
+      <input
+        type="password"
+        placeholder="Staff Code (optional)"
+        value={staffCode}
+        onChange={(e) => setStaffCode(e.target.value)}
+      />
+      <small
+        style={{
+          color: "#666",
+          fontSize: "12px",
+          marginTop: "-10px",
+          marginBottom: "10px",
+          display: "block",
+        }}
+      >
+        Enter "PALACE123" to become a staff member and create events
+      </small>
 
       <input
         type="url"

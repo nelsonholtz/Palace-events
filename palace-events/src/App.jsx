@@ -7,6 +7,7 @@ import Home from "./components/home/home";
 import CreateEventPage from "./pages/CreateEventPage";
 import GenreDayPage from "./pages/GenreDayPage";
 import ImportTicketmasterPage from "./pages/ImportTicketmasterPage";
+import ProfilePage from "./pages/ProfilePage";
 
 import "./css/App.css";
 
@@ -26,6 +27,7 @@ function App() {
           path="/import-ticketmaster"
           element={<ImportTicketmasterPage />}
         />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </>
   );
