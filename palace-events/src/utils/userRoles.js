@@ -4,13 +4,21 @@ import { db } from "../firebase/firebase";
 // Simple function to check if user is staff
 export const isUserStaff = async (userId) => {
   try {
+    console.log("🔍 Checking user role for:", userId);
     const userDoc = await getDoc(doc(db, "users", userId));
+    console.log("📄 User document exists:", userDoc.exists());
+
     if (userDoc.exists()) {
-      return userDoc.data().role === "staff";
+      const userData = userDoc.data();
+      console.log("👤 User data:", userData);
+      console.log("🎯 User role:", userData.role);
+      return userData.role === "staff";
     }
-    return false; // Default to community member
+
+    console.log("❌ No user document found");
+    return false;
   } catch (error) {
-    console.error("Error checking user role:", error);
-    return false; // If anything fails, they're not staff
+    console.error("❌ Error checking user role:", error);
+    return false;
   }
 };

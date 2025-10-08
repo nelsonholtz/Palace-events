@@ -62,11 +62,18 @@ export default function CreateEventPage() {
       return;
     }
 
+    console.log("=== CREATE EVENT CHECK ===");
+    console.log("Current user UID:", user.uid);
+    console.log("Current user email:", user.email);
+
     const staffCheck = await isUserStaff(user.uid);
+    console.log("Staff check result:", staffCheck);
     if (!staffCheck) {
       alert("❌ Staff access required! Only staff members can create events.");
       return;
     }
+
+    console.log("✅ Staff access granted, proceeding with event creation...");
 
     // Parse dates
     const startDate = parseLocalDateTime(start);
