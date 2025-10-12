@@ -9,6 +9,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import "../css/ImportTicketmasterPage.css";
 
 export default function ImportTicketmasterPage() {
   const [events, setEvents] = useState([]);
@@ -20,15 +21,12 @@ export default function ImportTicketmasterPage() {
   const apiKey = import.meta.env.VITE_TICKETMASTER_API_KEY;
 
   const fetchEvents = async () => {
-    // Check if user is signed in
     if (!auth.currentUser) {
       setMessage("Please sign in to import events");
       return;
     }
 
     const currentUserUID = auth.currentUser.uid;
-    console.log("👤 Importing events for user:", currentUserUID);
-
     setLoading(true);
     setMessage("");
 
@@ -60,7 +58,7 @@ export default function ImportTicketmasterPage() {
         }
 
         return {
-          ticketmasterId: event.id, // Store Ticketmaster ID separately
+          ticketmasterId: event.id,
           title: event.name,
           start: startDate,
           end: endDate,
@@ -68,11 +66,10 @@ export default function ImportTicketmasterPage() {
           link: event.url,
           location: event._embedded.venues[0]?.name || "Location TBA",
           genre: "ticketmaster",
-          userId: currentUserUID, // Store actual user UID
+          userId: currentUserUID,
         };
       });
 
-      console.log("✅ Formatted events:", formattedEvents);
       setEvents(formattedEvents);
       setMessage(`Found ${formattedEvents.length} events 🎉`);
     } catch (error) {
@@ -91,7 +88,6 @@ export default function ImportTicketmasterPage() {
     }
 
     try {
-      // Check if event already exists using ticketmasterId
       const q = query(
         collection(db, "events"),
         where("ticketmasterId", "==", event.ticketmasterId)
@@ -103,10 +99,9 @@ export default function ImportTicketmasterPage() {
         return;
       }
 
-      // Add to Firestore - let Firestore generate its own document ID
       await addDoc(collection(db, "events"), {
         ...event,
-        ticketmasterId: event.ticketmasterId, // Store separately
+        ticketmasterId: event.ticketmasterId,
         start: Timestamp.fromDate(event.start),
         end: Timestamp.fromDate(event.end),
         userId: auth.currentUser.uid,
@@ -128,95 +123,120 @@ export default function ImportTicketmasterPage() {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
-      <button onClick={() => navigate(-1)} style={{ marginBottom: "16px" }}>
-        ← Back
-      </button>
-      <h1>Import Events from Ticketmaster</h1>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Search events…"
-          value={search.query}
-          onChange={(e) => updateSearch("query", e.target.value)}
-          style={{ padding: "8px", flex: "1" }}
-        />
-        <input
-          type="text"
-          placeholder="Location"
-          value={search.location}
-          onChange={(e) => updateSearch("location", e.target.value)}
-          style={{ padding: "8px", flex: "1" }}
-        />
-        <button
-          onClick={fetchEvents}
-          disabled={loading}
-          style={{
-            padding: "8px 16px",
-            background: "#007bff",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-            borderRadius: "4px",
-          }}
-        >
-          {loading ? "Loading..." : "Search"}
+    <div className="import-page-container">
+      <div className="import-page">
+        <button onClick={() => navigate(-1)} className="back-button">
+          ← Back
         </button>
-      </div>
 
-      {message && <p style={{ marginBottom: "12px" }}>{message}</p>}
+        <div className="page-header">
+          <h1>Import Events from Ticketmaster</h1>
+          <p>Discover and import exciting events to your community calendar</p>
+        </div>
 
-      {loading ? (
-        <p>Fetching events...</p>
-      ) : events.length === 0 ? (
-        <p>No events found. Try another search.</p>
-      ) : (
-        events.map((e) => (
-          <div
-            key={e.ticketmasterId}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              marginBottom: "12px",
-              padding: "12px",
-              background: "#fff",
-            }}
-          >
-            <h3>{e.title}</h3>
-            <p>
-              📅 {e.start.toLocaleDateString()} – {e.end.toLocaleDateString()}
-            </p>
-            <p>📍 {e.location}</p>
-            <p>{e.description}</p>
-            <a href={e.link} target="_blank" rel="noreferrer">
-              🔗 View on Ticketmaster
-            </a>
-            <div style={{ marginTop: "8px" }}>
-              <button
-                onClick={() => addToCalendar(e)}
-                style={{
-                  padding: "6px 12px",
-                  background: "#28a745",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                + Add to Calendar
-              </button>
-            </div>
+        <div className="search-section">
+          <div className="search-controls">
+            <input
+              type="text"
+              placeholder="Search events…"
+              value={search.query}
+              onChange={(e) => updateSearch("query", e.target.value)}
+              className="search-input"
+            />
+            <input
+              type="text"
+              placeholder="Location"
+              value={search.location}
+              onChange={(e) => updateSearch("location", e.target.value)}
+              className="search-input"
+            />
+            <button
+              onClick={fetchEvents}
+              disabled={loading}
+              className="search-button"
+            >
+              {loading ? (
+                <>
+                  <span className="loading-spinner"></span>
+                  Searching...
+                </>
+              ) : (
+                "Search Events"
+              )}
+            </button>
           </div>
-        ))
-      )}
+        </div>
+
+        {message && (
+          <div
+            className={`message ${
+              message.includes("✅")
+                ? "success"
+                : message.includes("❌")
+                ? "error"
+                : "info"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="loading-state">
+            <div className="loading-spinner large"></div>
+            <p>Fetching events from Ticketmaster...</p>
+          </div>
+        ) : events.length === 0 ? (
+          <div className="no-events">
+            <div className="no-events-icon">🎭</div>
+            <h3>No Events Found</h3>
+            <p>Try adjusting your search terms or location</p>
+          </div>
+        ) : (
+          <div className="events-grid">
+            {events.map((e) => (
+              <div key={e.ticketmasterId} className="event-card">
+                <div className="event-header">
+                  <h3>{e.title}</h3>
+                  <span className="event-badge">Ticketmaster</span>
+                </div>
+
+                <div className="event-details">
+                  <div className="event-date">
+                    <span className="icon">📅</span>
+                    {e.start.toLocaleDateString()} –{" "}
+                    {e.end.toLocaleDateString()}
+                  </div>
+                  <div className="event-location">
+                    <span className="icon">📍</span>
+                    {e.location}
+                  </div>
+                  <p className="event-description">{e.description}</p>
+                </div>
+
+                <div className="event-actions">
+                  <a
+                    href={e.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ticketmaster-link"
+                  >
+                    <span className="icon">🔗</span>
+                    View on Ticketmaster
+                  </a>
+                  <button
+                    onClick={() => addToCalendar(e)}
+                    className="add-to-calendar-btn"
+                  >
+                    <span className="icon">+</span>
+                    Add to Calendar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

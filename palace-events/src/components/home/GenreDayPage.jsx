@@ -14,7 +14,6 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import GenreCard from "../components/GenreCard";
-import "../css/GenreDayPage.css";
 
 export default function GenreDayPage() {
   const { date } = useParams();
@@ -72,7 +71,14 @@ export default function GenreDayPage() {
   // Callback for when an event is deleted
   const handleEventDeleted = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   }, []);
+
+  // Test Firestore connection
+  const testFirestoreConnection = async () => {
+    // Test connection removed for production
+    return;
+  };
 
   // Group events by genre for this specific day
   const eventsByGenre = useMemo(() => {
@@ -98,41 +104,35 @@ export default function GenreDayPage() {
     return groups;
   }, [events, date]);
 
-  // Format date for display
-  const formattedDate = useMemo(() => {
-    const dateObj = new Date(date);
-    return dateObj.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  }, [date]);
-
   return (
-    <div className="genre-day-page">
-      <button onClick={() => navigate(-1)} className="back-btn">
-        ← Back to Calendar
+    <div
+      className="genre-day-page"
+      style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}
+    >
+      <button onClick={() => navigate(-1)} style={{ marginBottom: "16px" }}>
+        ← Back
       </button>
 
-      <h1 className="page-header">Events on {formattedDate}</h1>
+      {/* Manual refresh and test connection removed for production */}
+
+      <h1 style={{ marginBottom: "12px" }}>Events on {date}</h1>
+
+      {/* Debug info removed for production */}
 
       {loading ? (
-        <p className="loading-text">Loading events…</p>
+        <p>Loading…</p>
       ) : Object.keys(eventsByGenre).length === 0 ? (
-        <div className="no-events">No events scheduled for this day.</div>
+        <p>No events for this day.</p>
       ) : (
-        <div className="genre-cards-container">
-          {Object.entries(eventsByGenre).map(([genre, genreEvents]) => (
-            <GenreCard
-              key={genre}
-              genre={genre}
-              events={genreEvents}
-              user={user}
-              onEventDeleted={handleEventDeleted}
-            />
-          ))}
-        </div>
+        Object.entries(eventsByGenre).map(([genre, genreEvents]) => (
+          <GenreCard
+            key={genre}
+            genre={genre}
+            events={genreEvents}
+            user={user}
+            onEventDeleted={handleEventDeleted}
+          />
+        ))
       )}
     </div>
   );

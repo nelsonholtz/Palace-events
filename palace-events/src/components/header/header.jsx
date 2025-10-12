@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext";
+import "../../css/Header.css";
 
 export default function Header() {
   const { currentUser, logout } = useAuth();
@@ -7,39 +8,50 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await logout(); // call Firebase signOut
-      navigate("/"); // redirect to homepage after logout
+      await logout();
+      navigate("/");
     } catch (err) {
-      console.error("Logout failed:", err);
+      // handle error silently
     }
   };
 
   return (
-    <header className="p-4 bg-gray-800 text-white flex justify-between">
-      <Link to="/" className="text-xl font-bold">
-        Palace Events
-      </Link>
-      <nav>
-        {currentUser ? (
-          <button
-            onClick={handleLogout}
-            className="ml-4 bg-red-500 px-3 py-1 rounded"
-          >
-            Logout
-          </button>
-        ) : (
-          <>
-            <Link to="/login" className="ml-4">
-              Login
-            </Link>
-            <Link to="/register" className="ml-4">
-              Register
-            </Link>
-          </>
-        )}
+    <header className="header">
+      <div className="header-container">
+        {/* Brand on the left */}
+        <div className="brand" onClick={() => navigate("/")}>
+          <div className="brand-text">
+            <h1>Palace Events</h1>
+            <span>Community Platform</span>
+          </div>
+        </div>
 
-        <button onClick={() => navigate("/profile")}>👤 My Profile</button>
-      </nav>
+        {/* Navigation pushed to the right */}
+        <nav className="nav">
+          {currentUser ? (
+            <div className="user-nav">
+              <button
+                onClick={() => navigate("/profile")}
+                className="profile-btn"
+              >
+                My Profile
+              </button>
+              <button onClick={handleLogout} className="logout-btn">
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="auth-nav">
+              <Link to="/login" className="login-btn">
+                Login
+              </Link>
+              <Link to="/register" className="register-btn">
+                Register
+              </Link>
+            </div>
+          )}
+        </nav>
+      </div>
     </header>
   );
 }

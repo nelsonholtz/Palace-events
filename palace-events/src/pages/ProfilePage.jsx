@@ -64,7 +64,7 @@ export default function ProfilePage() {
 
       setUserEvents(userAttendingEvents);
     } catch (error) {
-      console.error("Error fetching user events:", error);
+      // handle error silently
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ export default function ProfilePage() {
       // Refresh the list
       fetchUserEvents(user.uid);
     } catch (error) {
-      console.error("Error removing RSVP:", error);
+      // handle error silently
       alert("Failed to remove RSVP. Please try again.");
     }
   };

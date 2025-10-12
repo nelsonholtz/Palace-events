@@ -49,6 +49,8 @@ export default function CalendarPage() {
   // Group events by day
   const eventsByDay = useMemo(() => {
     const map = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     visibleEvents.forEach((event) => {
       if (!event.start || isNaN(event.start)) return;
@@ -56,10 +58,15 @@ export default function CalendarPage() {
       const start = new Date(event.start);
       const end = event.end && !isNaN(event.end) ? new Date(event.end) : start;
 
-      // Get all dates this event spans
+      // Get all dates this event spans (strictly less than end)
       const current = new Date(start);
       while (current <= end) {
-        const dateKey = current.toISOString().split("T")[0];
+        const dateKey =
+          current.getFullYear() +
+          "-" +
+          String(current.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(current.getDate()).padStart(2, "0");
         if (!map[dateKey]) map[dateKey] = {};
         if (!map[dateKey][event.genre]) map[dateKey][event.genre] = [];
 
@@ -93,6 +100,16 @@ export default function CalendarPage() {
   for (let i = 1; i <= lastDay.getDate(); i++) {
     days.push(new Date(year, month, i));
   }
+
+  // Check if a date is today
+  const isToday = (date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
 
   return (
     <div className="calendar-page">
@@ -128,16 +145,27 @@ export default function CalendarPage() {
         {days.map((day, index) => {
           if (!day) return <div key={index} className="day-cell"></div>;
 
-          const dateKey = day.toISOString().split("T")[0];
+          const dateKey =
+            day.getFullYear() +
+            "-" +
+            String(day.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(day.getDate()).padStart(2, "0");
           const dayEvents = eventsByDay[dateKey] || {};
+          const genres = Object.keys(dayEvents);
+          const firstGenre = genres.length > 0 ? genres[0] : null;
 
           return (
             <div
               key={dateKey}
               className={`day-cell ${
                 dayEvents.ticketmaster ? "has-ticketmaster" : ""
-              }`}
-              onClick={() => navigate(`/day/${dateKey}`)}
+              } ${isToday(day) ? "current-day" : ""}`}
+              onClick={() => {
+                if (firstGenre) {
+                  navigate(`/day/${dateKey}/${firstGenre}`);
+                }
+              }}
             >
               <div className="day-number">{day.getDate()}</div>
 
@@ -149,7 +177,7 @@ export default function CalendarPage() {
                 <button
                   key={genre}
                   className={`genre-button ${
-                    genre === "ticketmaster" ? "ticketmaster-genre" : "default"
+                    genre === "ticketmaster" ? "ticketmaster-genre" : ""
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();

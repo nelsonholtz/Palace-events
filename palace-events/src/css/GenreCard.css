@@ -1,30 +1,210 @@
+/* Genre Card Styles - Matching Header Design */
 .genre-card {
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  margin-bottom: 12px;
+  background: white;
+  border: 1px solid rgba(141, 110, 99, 0.2);
+  border-radius: 12px;
+  margin-bottom: 2rem;
   overflow: hidden;
+  box-shadow: 0 2px 15px rgba(93, 64, 55, 0.1);
+  transition: all 0.3s ease;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.genre-card:hover {
+  box-shadow: 0 4px 20px rgba(93, 64, 55, 0.15);
+  transform: translateY(-2px);
 }
 
 .genre-header {
   width: 100%;
   text-align: left;
-  background: #f0f0f0;
-  padding: 8px 12px;
+  background: linear-gradient(135deg, #d4a5a5 0%, #e8c4c4 100%);
+  padding: 1.25rem 1.5rem;
   border: none;
-  font-weight: bold;
-  cursor: pointer;
+  font-weight: 700;
+  cursor: default;
+  color: #5d4037;
+  font-size: 1.4rem;
+  margin: 0;
+  transition: all 0.3s ease;
 }
 
 .genre-events {
-  padding: 8px 12px;
-  background: #fff;
+  padding: 1.5rem;
+  background: #faf7f5;
 }
 
-.event-card {
-  padding: 6px 0;
-  border-bottom: 1px solid #eee;
+/* Event Item Styles */
+.event-item {
+  background: white;
+  border: 1px solid rgba(141, 110, 99, 0.2);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: all 0.3s ease;
 }
 
-.event-card:last-child {
-  border-bottom: none;
+.event-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(93, 64, 55, 0.15);
+  border-color: rgba(141, 110, 99, 0.4);
+}
+
+.event-content {
+  flex: 1;
+  padding-right: 1rem;
+  min-width: 0; /* Prevents flex item from overflowing */
+}
+
+.event-content h3 {
+  margin: 0 0 0.75rem 0;
+  color: #5d4037;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.event-content p {
+  margin: 0.4rem 0;
+  color: #8d6e63;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.event-content a {
+  color: #d4a5a5;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.event-content a:hover {
+  color: #5d4037;
+  text-decoration: underline;
+}
+
+/* Event Actions */
+.event-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-left: 1rem;
+  min-width: 140px; /* Increased minimum width */
+  max-width: 160px; /* Added maximum width */
+}
+
+/* Delete Button - Matching Header Button Styles */
+.delete-btn {
+  background: rgba(93, 64, 55, 0.1);
+  border: 1px solid rgba(93, 64, 55, 0.3);
+  color: #5d4037;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.8rem;
+  max-width: 100%; /* Ensure it doesn't exceed container */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.delete-btn:hover {
+  background: rgba(93, 64, 55, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(93, 64, 55, 0.2);
+  border-color: rgba(93, 64, 55, 0.5);
+}
+
+/* Attend Button and Calendar Button - Matching Profile Button Styles */
+.event-actions button:not(.delete-btn) {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(141, 110, 99, 0.2);
+  color: #5d4037;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.8rem;
+  max-width: 100%; /* Ensure it doesn't exceed container */
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-actions button:not(.delete-btn):hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(93, 64, 55, 0.15);
+  border-color: rgba(141, 110, 99, 0.4);
+}
+
+/* Ticketmaster Specific Styles */
+.ticketmaster-genre .genre-header {
+  background: linear-gradient(135deg, #0069d9 0%, #004ba0 100%);
+  color: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .genre-header {
+    padding: 1rem 1.25rem;
+    font-size: 1.2rem;
+  }
+
+  .genre-events {
+    padding: 1rem;
+  }
+
+  .event-item {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .event-content {
+    padding-right: 0;
+    margin-bottom: 1rem;
+  }
+
+  .event-actions {
+    margin-left: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+  }
+
+  .event-actions button {
+    flex: 1;
+    font-size: 0.75rem;
+    padding: 0.6rem 0.8rem;
+    min-width: 0; /* Allow buttons to shrink properly */
+  }
+}
+
+@media (max-width: 480px) {
+  .genre-header {
+    font-size: 1.1rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .event-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .event-actions {
+    flex-direction: column;
+  }
+
+  .event-actions button {
+    font-size: 0.7rem;
+    width: 100%;
+  }
 }
