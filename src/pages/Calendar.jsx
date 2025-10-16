@@ -10,11 +10,36 @@ export default function CalendarPage() {
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const capitalizeGenre = (genre) => {
     if (!genre || genre === "ticketmaster") return genre;
     return genre.charAt(0).toUpperCase() + genre.slice(1);
+  };
+
+  // Abbreviate genre names for mobile
+  const getGenreDisplay = (genre, count) => {
+    if (genre === "ticketmaster") {
+      return isMobile ? `🎟️${count}` : `🎟️ Events (${count})`;
+    }
+
+    if (isMobile) {
+      // Return first letter capitalized for mobile
+      return `${genre.charAt(0).toUpperCase()}${count}`;
+    }
+
+    return `${capitalizeGenre(genre)} (${count})`;
   };
 
   useEffect(() => {
@@ -90,7 +115,9 @@ export default function CalendarPage() {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
 
-  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weekdays = isMobile
+    ? ["M", "T", "W", "T", "F", "S", "S"]
+    : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const days = [];
 
   let firstDayOfWeek = firstDay.getDay();
@@ -125,8 +152,8 @@ export default function CalendarPage() {
       </div>
 
       <div className="weekday-grid">
-        {weekdays.map((day) => (
-          <div key={day}>{day}</div>
+        {weekdays.map((day, index) => (
+          <div key={index}>{day}</div>
         ))}
       </div>
 
@@ -142,7 +169,6 @@ export default function CalendarPage() {
             String(day.getDate()).padStart(2, "0");
           const dayEvents = eventsByDay[dateKey] || {};
           const genres = Object.keys(dayEvents);
-          const firstGenre = genres.length > 0 ? genres[0] : null;
 
           return (
             <div
@@ -156,17 +182,14 @@ export default function CalendarPage() {
 
               {Object.entries(dayEvents).map(([genre, events]) => {
                 const colour = getGenreColour(genre);
-                const displayGenre =
-                  genre === "ticketmaster"
-                    ? `🎟️ Events (${events.length})`
-                    : `${capitalizeGenre(genre)} (${events.length})`;
+                const displayGenre = getGenreDisplay(genre, events.length);
 
                 return (
                   <button
                     key={genre}
                     className={`genre-button ${
                       genre === "ticketmaster" ? "ticketmaster-genre" : ""
-                    }`}
+                    } ${isMobile ? "mobile-genre" : ""}`}
                     style={{
                       backgroundColor: colour.background,
                       color: colour.text,
@@ -175,6 +198,11 @@ export default function CalendarPage() {
                       e.stopPropagation();
                       navigate(`/day/${dateKey}/${genre}`);
                     }}
+                    title={
+                      isMobile
+                        ? `${capitalizeGenre(genre)} (${events.length})`
+                        : ""
+                    }
                   >
                     {displayGenre}
                   </button>
