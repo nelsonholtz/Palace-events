@@ -1,68 +1,51 @@
 # 🏛️ Palace Community Events
 
-Palace Community Events is a platform where local businesses can create and share events with community members. Community members can discover events, RSVP to attend, and add events directly to their Google Calendar. Staff members have special permissions to create and manage events for the community.
+A community events platform where local organizations can create and share events, and community members can discover, RSVP, and add events to their calendars.
 
-**Live site:** _[Your deployed URL will go here]_
+**Live Site:** [https://palacecommunityevents.netlify.app](https://palacecommunityevents.netlify.app)  
+**GitHub Repository:** [https://github.com/nelsonholtz/Palace-events](https://github.com/nelsonholtz/Palace-events)
 
-## ✨ Features
+## 🎯 Project Overview
 
-**For Community Members:**
+Palace Community Events solves the problem of event information getting lost in chat apps like Telegram and WhatsApp by providing a centralized calendar platform. Community organizations can create events, and members can easily discover and track upcoming activities in a beautiful calendar interface.
 
-- Browse events in a beautiful calendar view
-- RSVP to events you want to attend
-- Add events directly to your Google Calendar
-- View and manage your RSVP'd events in a personal profile
-- Import events from Ticketmaster
+### MVP Deliverables ✅
 
-**For Staff Members:**
+- ✅ **Event Creation** - Staff members can create and manage community events
+- ✅ **Event Discovery** - Community members can browse events in an intuitive calendar view
+- ✅ **RSVP System** - Users can sign up for events they want to attend
+- ✅ **Google Calendar Integration** - One-click addition of events to personal Google Calendar
+- ✅ **Ticketmaster Import** - Import external events from Ticketmaster API
 
-- Create and manage community events
-- Import events from Ticketmaster API
-- Special staff access with registration codes
+## 🚀 Quick Start
 
-**Event Management:**
+### Demo Access
 
-- Real-time calendar with month navigation
-- Event categorization by genre
-- Multi-day event support
-- Event descriptions, locations, and external links
-- RSVP tracking and attendance counts
+**Staff Account (Event Creation):**
 
-## 🛠️ Tech Stack
+- Email: `staff@palacecommunity.com`
+- Password: `staff123`
 
-**Frontend**
+**Community Account (Event Browsing):**
 
-- React – Component-based user interface
-- Vite – Fast development build tool
-- React Router – Single page application navigation
-- CSS3 – Custom responsive styling
+- Email: `member@palacecommunity.com`
+- Password: `member123`
 
-**Backend & Services**
-
-- **Firebase**
-  - Authentication – User sign-in and sign-up
-  - Firestore – Real-time NoSQL database
-  - Hosting – Production deployment
-- **Google Calendar API** – Add events to user calendars
-- **Ticketmaster API** – Import external events
-
-**Development Tools**
-
-- JavaScript ES6+
-- Firebase Security Rules
-- Environment variables for configuration
-
-## 🚀 Development
-
-### Install Dependencies
+### Local Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/nelsonholtz/Palace-events.git
+cd palace-events
+
+# Install dependencies
 npm install
-```
 
-### Run Locally
+# Set up environment variables
+cp .env.example .env
+# Add your Firebase and Ticketmaster API keys to .env
 
-```bash
+# Run development server
 npm run dev
 ```
 
@@ -72,92 +55,80 @@ npm run dev
 npm run build
 ```
 
-### Deploy to Firebase
+## 🛠️ Technology Stack
 
-```bash
-firebase deploy
-```
+### Frontend
 
-## 🔧 Environment Setup
+- **React 18** - Component-based UI
+- **Vite** - Fast build tool and dev server
+- **React Router** - Client-side navigation
+- **CSS3** - Custom responsive styling
 
-Create a `.env` file in the root directory:
+### Backend & APIs
 
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-VITE_TICKETMASTER_API_KEY=your_ticketmaster_key
-```
+- **Firebase**
+  - Authentication (Email/Password & Google OAuth)
+  - Firestore Database - Real-time data storage
+  - Security Rules - Protected data access
+- **Google Calendar API** - Personal calendar integration
+- **Ticketmaster Discovery API** - External event imports
 
-## 📁 Project Structure
+### Deployment
 
-```
-src/
-├── components/          # Reusable UI components
-│   ├── CalendarButton.jsx
-│   ├── AttendButton.jsx
-│   └── GenreCard.jsx
-├── pages/              # Main application pages
-│   ├── CalendarPage.jsx
-│   ├── ProfilePage.jsx
-│   ├── CreateEventPage.jsx
-│   └── GenreDayPage.jsx
-├── services/           # External API integrations
-│   ├── googleCalendar.js
-│   └── firebase/
-├── contexts/           # React context for state management
-├── css/               # Stylesheets
-└── utils/             # Helper functions
-```
+- **Netlify** - Production hosting with CI/CD
+- **Environment Variables** - Secure configuration management
 
-## 🔐 User Roles
+## 📋 Core Features
 
-**Community Members:**
+### For Community Members
 
-- Can browse and RSVP to events
-- Can add events to Google Calendar
-- Can view personal event dashboard
+- **Calendar View** - Monthly overview with event indicators
+- **Event Discovery** - Browse events by date and category
+- **RSVP Management** - Track events you're attending
+- **Google Calendar Integration** - Add events to personal calendar
+- **Ticketmaster Imports** - Discover external events
 
-**Staff Members:**
+### For Staff Members
 
-- All community member features
-- Can create and manage events
-- Can import events from Ticketmaster
-- Access granted via staff registration code
+- **Event Creation** - Create and manage community events
+- **Event Management** - Edit and delete events
+- **Ticketmaster Integration** - Import events from external API
+- **Staff Authentication** - Protected admin features
 
-## 🎯 Key Features Explained
+## 🔐 Authentication & Security
 
-**Calendar System**
+- **Firebase Authentication** - Secure user management
+- **Role-based Access** - Staff vs Community member permissions
+- **Environment Variables** - Protected API keys
+- **Firestore Security Rules** - Data protection
 
-- Monthly view with event indicators
-- Click days to view events
-- Genre-based event categorization
-- Real-time Firestore updates
+## 🎨 Design & UX
 
-**RSVP System**
+- **Responsive Design** - Mobile-first approach
+- **Accessibility** - Keyboard navigation and screen reader support
+- **Intuitive Calendar** - Clear event visualization
+- **Genre Color Coding** - Visual event categorization
 
-- Track event attendance
-- User profiles show all RSVP'd events
-- Remove RSVPs at any time
-- See how many people are attending each event
+### Firebase Services
 
-**Google Calendar Integration**
+- **Authentication** - User signup/login
+- **Firestore** - Real-time event data
+- **Security Rules** - Data protection
 
-- One-click add to Google Calendar
-- Pre-filled event details
-- Opens in new tab for user confirmation
+### External APIs
 
-## 🌟 Upcoming Features
+- **Google Calendar API** - Add events to user calendars
+- **Ticketmaster Discovery API** - Import external events
+
+## 🚀 Deployment
+
+The application is deployed on **Netlify**
+
+## 🔮 Future Enhancements
 
 - [ ] Payment integration for paid events
 - [ ] Email reminders for upcoming events
 - [ ] Event sharing on social media
-- [ ] Advanced event filtering and search
+- [ ] Advanced filtering and search
 - [ ] Recurring events support
-
----
-
-_This project was built by Nelson Holtz as a community events platform solution._
+- [ ] Push notifications

@@ -16,7 +16,7 @@ export default function Header() {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
       if (!mobile) {
-        setShowMobileMenu(false); // Close mobile menu when switching to desktop
+        setShowMobileMenu(false);
       }
     };
 

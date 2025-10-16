@@ -46,13 +46,11 @@ export default function GenreDayPage() {
     setModalConfig((prev) => ({ ...prev, isOpen: false }));
   };
 
-  // Handle modal button clicks
   const handleModalButtonClick = (action) => {
-    // If there's a custom callback, call it
     if (modalConfig.onButtonClick) {
       modalConfig.onButtonClick(action);
     }
-    // Always close the modal
+
     closeModal();
   };
 

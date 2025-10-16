@@ -306,7 +306,6 @@
     text-align: center;
   }
 
-  /* Hide genre text on very small screens, show only count */
   @media (max-width: 380px) {
     .genre-button:not(.ticketmaster-genre) {
       font-size: 0.55rem;

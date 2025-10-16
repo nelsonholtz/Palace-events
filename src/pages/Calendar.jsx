@@ -13,7 +13,6 @@ export default function CalendarPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
 
-  // Detect mobile screen size
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -28,14 +27,12 @@ export default function CalendarPage() {
     return genre.charAt(0).toUpperCase() + genre.slice(1);
   };
 
-  // Abbreviate genre names for mobile
   const getGenreDisplay = (genre, count) => {
     if (genre === "ticketmaster") {
       return isMobile ? `🎟️${count}` : `🎟️ Events (${count})`;
     }
 
     if (isMobile) {
-      // Return first letter capitalized for mobile
       return `${genre.charAt(0).toUpperCase()}${count}`;
     }
 
