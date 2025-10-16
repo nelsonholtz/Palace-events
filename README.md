@@ -132,3 +132,7 @@ The application is deployed on **Netlify**
 - [ ] Advanced filtering and search
 - [ ] Recurring events support
 - [ ] Push notifications
+
+## 📄 License
+
+MIT License - Copyright (c) 2025 Nelson Holtz
