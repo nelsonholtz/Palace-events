@@ -75,7 +75,6 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Desktop Navigation */}
           <nav className={`nav ${isMobile ? "mobile-nav" : ""}`}>
             {!isMobile && (
               <>
@@ -113,7 +112,6 @@ export default function Header() {
               </>
             )}
 
-            {/* Mobile Hamburger Menu */}
             {isMobile && (
               <div className="mobile-menu-container">
                 <button
@@ -126,7 +124,6 @@ export default function Header() {
                   <span></span>
                 </button>
 
-                {/* Mobile Dropdown Menu */}
                 {showMobileMenu && (
                   <div className="mobile-dropdown">
                     {isStaff && (
