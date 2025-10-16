@@ -102,10 +102,10 @@ export default function Header() {
                   </div>
                 ) : (
                   <div className="auth-nav">
-                    <Link to="/login" className="login-btn">
+                    <Link to="/login" className="auth-btn auth-login">
                       Login
                     </Link>
-                    <Link to="/register" className="register-btn">
+                    <Link to="/register" className="auth-btn auth-register">
                       Register
                     </Link>
                   </div>
@@ -157,14 +157,14 @@ export default function Header() {
                       <>
                         <Link
                           to="/login"
-                          className="mobile-menu-btn login-mobile"
+                          className="mobile-menu-btn auth-mobile auth-login-mobile"
                           onClick={() => setShowMobileMenu(false)}
                         >
                           Login
                         </Link>
                         <Link
                           to="/register"
-                          className="mobile-menu-btn register-mobile"
+                          className="mobile-menu-btn auth-mobile auth-register-mobile"
                           onClick={() => setShowMobileMenu(false)}
                         >
                           Register
