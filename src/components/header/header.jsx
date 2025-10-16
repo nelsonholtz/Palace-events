@@ -1,22 +1,40 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../../css/Header.css";
 
 export default function Header() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setShowMobileMenu(false); // Close mobile menu when switching to desktop
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleLogout = async () => {
     try {
       await logout();
       navigate("/");
+      setShowMobileMenu(false);
     } catch (err) {}
   };
 
   const handleCreateEventClick = () => {
     setShowCreateModal(true);
+    setShowMobileMenu(false);
   };
 
   const handleLocalEvent = () => {
@@ -31,6 +49,15 @@ export default function Header() {
 
   const closeModal = () => {
     setShowCreateModal(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(!showMobileMenu);
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    setShowMobileMenu(false);
   };
 
   const isStaff =
@@ -48,36 +75,104 @@ export default function Header() {
             </div>
           </div>
 
-          <nav className="nav">
-            {isStaff && (
-              <button
-                onClick={handleCreateEventClick}
-                className="create-event-btn"
-              >
-                + Create Event
-              </button>
+          {/* Desktop Navigation */}
+          <nav className={`nav ${isMobile ? "mobile-nav" : ""}`}>
+            {!isMobile && (
+              <>
+                {isStaff && (
+                  <button
+                    onClick={handleCreateEventClick}
+                    className="create-event-btn"
+                  >
+                    + Create Event
+                  </button>
+                )}
+
+                {currentUser ? (
+                  <div className="user-nav">
+                    <button
+                      onClick={() => navigate("/profile")}
+                      className="profile-btn"
+                    >
+                      My Profile
+                    </button>
+                    <button onClick={handleLogout} className="logout-btn">
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <div className="auth-nav">
+                    <Link to="/login" className="login-btn">
+                      Login
+                    </Link>
+                    <Link to="/register" className="register-btn">
+                      Register
+                    </Link>
+                  </div>
+                )}
+              </>
             )}
 
-            {currentUser ? (
-              <div className="user-nav">
+            {/* Mobile Hamburger Menu */}
+            {isMobile && (
+              <div className="mobile-menu-container">
                 <button
-                  onClick={() => navigate("/profile")}
-                  className="profile-btn"
+                  className="hamburger-btn"
+                  onClick={toggleMobileMenu}
+                  aria-label="Toggle menu"
                 >
-                  My Profile
+                  <span></span>
+                  <span></span>
+                  <span></span>
                 </button>
-                <button onClick={handleLogout} className="logout-btn">
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="auth-nav">
-                <Link to="/login" className="login-btn">
-                  Login
-                </Link>
-                <Link to="/register" className="register-btn">
-                  Register
-                </Link>
+
+                {/* Mobile Dropdown Menu */}
+                {showMobileMenu && (
+                  <div className="mobile-dropdown">
+                    {isStaff && (
+                      <button
+                        onClick={handleCreateEventClick}
+                        className="mobile-menu-btn create-event-mobile"
+                      >
+                        + Create Event
+                      </button>
+                    )}
+
+                    {currentUser ? (
+                      <>
+                        <button
+                          onClick={() => handleNavigation("/profile")}
+                          className="mobile-menu-btn profile-mobile"
+                        >
+                          My Profile
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="mobile-menu-btn logout-mobile"
+                        >
+                          Logout
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to="/login"
+                          className="mobile-menu-btn login-mobile"
+                          onClick={() => setShowMobileMenu(false)}
+                        >
+                          Login
+                        </Link>
+                        <Link
+                          to="/register"
+                          className="mobile-menu-btn register-mobile"
+                          onClick={() => setShowMobileMenu(false)}
+                        >
+                          Register
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </nav>
