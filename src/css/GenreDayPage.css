@@ -1,0 +1,102 @@
+.genre-day-page {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #faf7f5;
+  min-height: 100vh;
+}
+
+.back-btn {
+  background: rgba(93, 64, 55, 0.1);
+  color: #5d4037;
+  border: 1px solid rgba(93, 64, 55, 0.3);
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-bottom: 2rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.back-btn:hover {
+  background: rgba(93, 64, 55, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(93, 64, 55, 0.2);
+}
+
+.page-header {
+  color: #5d4037;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.loading-text {
+  text-align: center;
+  color: #8d6e63;
+  font-size: 1.1rem;
+  padding: 3rem;
+}
+
+.no-events {
+  text-align: center;
+  color: #8d6e63;
+  font-size: 1.1rem;
+  padding: 3rem;
+  background: white;
+  border: 1px solid rgba(141, 110, 99, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(93, 64, 55, 0.08);
+}
+
+.genre-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .genre-day-page {
+    padding: 1rem;
+  }
+
+  .page-header {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .back-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .loading-text,
+  .no-events {
+    padding: 2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    font-size: 1.5rem;
+  }
+
+  .back-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .loading-text,
+  .no-events {
+    padding: 1.5rem;
+    font-size: 0.9rem;
+  }
+}
