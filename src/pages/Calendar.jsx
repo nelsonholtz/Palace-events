@@ -134,6 +134,19 @@ export default function CalendarPage() {
     );
   };
 
+  const handleDayClick = (dateKey) => {
+    navigate(`/day/${dateKey}`);
+  };
+
+  const handleGenreClick = (dateKey, genre, e) => {
+    if (isMobile) {
+      navigate(`/day/${dateKey}`);
+    } else {
+      e.stopPropagation();
+      navigate(`/day/${dateKey}/${genre}`);
+    }
+  };
+
   return (
     <div className="calendar-page">
       <h1>Community Calendar</h1>
@@ -170,10 +183,10 @@ export default function CalendarPage() {
           return (
             <div
               key={dateKey}
-              className={`day-cell ${isToday(day) ? "current-day" : ""}`}
-              onClick={() => {
-                navigate(`/day/${dateKey}`);
-              }}
+              className={`day-cell ${isToday(day) ? "current-day" : ""} ${
+                genres.length > 0 ? "has-events" : ""
+              }`}
+              onClick={() => handleDayClick(dateKey)}
             >
               <div className="day-number">{day.getDate()}</div>
 
@@ -191,10 +204,7 @@ export default function CalendarPage() {
                       backgroundColor: colour.background,
                       color: colour.text,
                     }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/day/${dateKey}/${genre}`);
-                    }}
+                    onClick={(e) => handleGenreClick(dateKey, genre, e)}
                     title={
                       isMobile
                         ? `${capitalizeGenre(genre)} (${events.length})`
