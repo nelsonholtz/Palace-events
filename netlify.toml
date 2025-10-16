@@ -1,6 +1,6 @@
-echo '[build]
+[build]
 command = "npm run build"
 publish = "dist"
 
 [build.environment]
-NETLIFY_SKIP_SUBMODULES = "true"' > netlify.toml
+NETLIFY_SKIP_SUBMODULES = "true"
